@@ -1,4 +1,5 @@
-python-dotenv==1.0.1
-streamlit==1.36.0
+python-dotenv
+streamlit
 cerebras-sdk
 streamlit-shadcn-ui
+cerebras-cloud-sdk
