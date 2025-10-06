@@ -6,21 +6,26 @@ from cerebras.cloud.sdk import Cerebras
 # Load environment variables from .env file
 load_dotenv()
 
-# Initialize the Cerebras client
-# It automatically uses the CEREBRAS_API_KEY environment variable.
-# We add a check for Streamlit secrets as a fallback for deployment.
-api_key = os.getenv("CEREBRAS_API_KEY") or st.secrets.get("CEREBRAS_API_KEY")
-client = Cerebras(api_key=api_key)
+_client = None
+
+def get_client():
+    """Initializes and returns a singleton Cerebras client."""
+    global _client
+    if _client is None:
+        api_key = os.getenv("CEREBRAS_API_KEY") or st.secrets.get("CEREBRAS_API_KEY")
+        if not api_key:
+            st.error("Cerebras API key is not set. Please add it to your .env file or Streamlit secrets.")
+            st.stop()
+        _client = Cerebras(api_key=api_key)
+    return _client
 
 # Centralized model configuration
 MODEL = "llama-3.3-70b"
 
 def _create_chat_completion(messages):
     """Helper function to create chat completion with error handling."""
-    if not api_key:
-        st.error("Cerebras API key is not set. Please add it to your .env file or Streamlit secrets.")
-        return None
     try:
+        client = get_client()
         # Use stream=True to get a generator of response chunks
         stream = client.chat.completions.create(
             model=MODEL,
